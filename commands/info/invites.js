@@ -1,0 +1,51 @@
+const { MessageEmbed } = require('discord.js')
+const db = require('quick.db')
+module.exports = {
+    name: 'invites',
+    category: 'info',
+    aliases: ['zaproszenia'],
+    description: 'Lista wszystkich komend',
+    run: async (client, message, args)=>{
+        const user2 = message.author
+        const blacklisted = db.fetch(`blacklist_${user2.id}`)
+
+        if( blacklisted === 1) return message.channel.send('Byczku ty masz Gbana')
+
+     
+        
+        const { guild } = message
+
+        guild.fetchInvites().then((invites) => {
+          const inviteCounter = {
+
+          }
+    
+          invites.forEach((invite) => {
+            const { uses, inviter } = invite
+            const { username, discriminator } = inviter
+    
+            const name = `${username}#${discriminator}`
+    
+            inviteCounter[name] = (inviteCounter[name] || 0) + uses
+          })
+    
+          let replyText = 'Zaproszenia:'
+    
+          const sortedInvites = Object.keys(inviteCounter).sort(
+            (a, b) => inviteCounter[b] - inviteCounter[a]
+          )
+    
+          console.log(sortedInvites)
+    
+          sortedInvites.length = 3
+    
+          for (const invite of sortedInvites) {
+            const count = inviteCounter[invite]
+            replyText += `\n${invite} zaprosił ${count} użytkownika(ów)!`
+          }
+    
+          message.reply(replyText)
+        })
+      },
+    }
+   
